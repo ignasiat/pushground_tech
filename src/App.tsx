@@ -8,7 +8,7 @@ import Header from './Header';
 import Blog from './Blog';
 import Features from './Features';
 import Dashboard from './Dashboard';
-import {AuthProvider, RequireAuth} from './AuthSystem/AuthSystem';
+import {AuthProvider, RequireAuth} from './AuthSystem';
 
 
 function App(): JSX.Element {

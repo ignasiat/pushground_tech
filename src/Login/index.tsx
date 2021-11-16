@@ -1,6 +1,6 @@
 import React, { useEffect } from 'react';
 import { useLocation, useNavigate } from 'react-router';
-import { useAuth, authValidation } from '../AuthSystem/AuthSystem';
+import { useAuth, authValidation } from '../AuthSystem';
 import './styles.scss';
 
 const Login = ():JSX.Element => {
