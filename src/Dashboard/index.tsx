@@ -18,10 +18,8 @@ const Dashboard = ():JSX.Element => {
 
   useEffect(() => {
     getInputsChecked(dataApi[0]);
+    console.log('data for Chart', getTotalsforChart(dataApi[1]));
   }, [dataApi]);
-
-  console.log('data', dataApi);
-
   
   const eventTypes = [
     {name: 'View Content',fieldName: 'view_content'},
@@ -58,27 +56,17 @@ const Dashboard = ():JSX.Element => {
       if (formData.get(`check-${cur.date}`) === 'on') {
 
         Object.keys(cur.audiences).forEach((audience: string) => {
-          console.log(formData?.get(`check-status-${audience}`));
           //We check that the status is checked
           if (formData?.get(`check-status-${audience}`) === 'on') {
-            console.log('entra if status');
             //We check for every type if is checked
             eventTypes.forEach((eventType: {name: string; fieldName: string}) => {
               if(formData?.get(`check-${eventType.fieldName}-${audience}`) === 'on') {
-                console.log('valor a sumar', cur.audiences?.[audience]?.[eventType.fieldName]);
                 acc[eventType.fieldName] += cur.audiences?.[audience]?.[eventType.fieldName];
               }
             })
           }
-          // if(formData?.get(`check-view_content-${audience}`) === 'on') {
-          //   acc.view_content += cur.audiences?.[audience]?.view_content;
-          // }
-          // if(formData?.get(`check-view_content-${audience}`) === 'on') {
-          //   acc.view_content += cur.audiences?.[audience]?.view_content;
-          // }
         })
       } 
-      console.log('acc', acc);
       return acc;
     }, {view_content: 0, page_scroll: 0, conversion: 0})
   }
@@ -94,6 +82,7 @@ const Dashboard = ():JSX.Element => {
     })
   }
 
+  console.log('data', dataApi);
 
   return (
     <>
