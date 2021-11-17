@@ -37,7 +37,7 @@ const Login = ():JSX.Element => {
 
   return (
     <div className='form__container'>
-      <form onSubmit={handleSubmit}>
+      <form onSubmit={handleSubmit} className='form__item'>
         {from && (<p>You must log in to view the page at {from}</p>)}
 
         <div className='form__name'>
@@ -52,7 +52,7 @@ const Login = ():JSX.Element => {
           <p>Password must be 8 characters and at leat 1 uppercase, 1 lowercase, 1 number and 1 character special @$!%*?&amp;</p>
         </div>
         <div className='form__submit'>
-          <button type="submit">Login</button>
+          <button type="submit" className='button--submit'>Login</button>
         </div>
       </form>
       <div className='form__validation display--none'>Username or password not valid</div>
