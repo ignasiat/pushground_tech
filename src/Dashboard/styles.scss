@@ -1,3 +1,13 @@
-.title {
-  color: black;
+.chartContainer {
+  display: flex;
+  justify-content: space-around;
+}
+
+#chart {
+  width: 80%;
+}
+
+.c3-line,
+.c3-line-View-Content {
+  fill: transparent;
 }

@@ -2,6 +2,8 @@
 import React, { useEffect, useState } from 'react';
 import './styles.scss';
 import { getApiData } from '../getApiData';
+import c3 from 'c3';
+
 
 const Dashboard = ():JSX.Element => {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -17,10 +19,43 @@ const Dashboard = ():JSX.Element => {
   }, []);
 
   useEffect(() => {
-    getInputsChecked(dataApi[0]);
-    console.log('data for Chart', getTotalsforChart(dataApi[1]));
+    if(dataApi[0].length > 0 && dataApi[1].length > 0) {
+      getInputsChecked(dataApi[0]);
+      printCharts(dataApi[1]);
+      // const formData = new FormData(document.getElementsByTagName('form')[0] ?? undefined);
+      dataApi[0].forEach((element: any) => {
+        eventTypes.forEach((eventType: any) => {
+          if(document.getElementById(`check-${eventType.fieldName}-${element.id}`)) {
+            document.getElementById(`check-${eventType.fieldName}-${element.id}`)?.addEventListener('click', handleClick);
+            document.getElementById(`check-status-${element.id}`)?.addEventListener('click', handleClick);
+          }
+        })
+      })
+      dataApi[1].forEach((element: any) => {
+        document.getElementById(`check-${element.date}`)?.addEventListener('click', handleClick)
+      })
+      //Clean up
+      return () => {
+        dataApi[0].forEach((element: any) => {
+          eventTypes.forEach((eventType: any) => {
+            if(document.getElementById(`check-${eventType.fieldName}-${element.id}`)) {
+              document.getElementById(`check-${eventType.fieldName}-${element.id}`)?.removeEventListener('click', handleClick);
+              document.getElementById(`check-status-${element.id}`)?.removeEventListener('click', handleClick);
+            }
+          })
+        })
+        dataApi[1].forEach((element: any) => {
+          document.getElementById(`check-${element.date}`)?.removeEventListener('click', handleClick)
+        })
+      }
+    }
   }, [dataApi]);
   
+  const handleClick =(event: Event): void => {
+    printCharts(dataApi[1]);
+    event.stopPropagation();
+  }
+
   const eventTypes = [
     {name: 'View Content',fieldName: 'view_content'},
     {name: 'Page Scroll',fieldName: 'page_scroll'},
@@ -49,26 +84,84 @@ const Dashboard = ():JSX.Element => {
     })
   }
 
-  const getTotalsforChart = (input: any): any => {
+  const printCharts = (input: any): void => {
     const formData = new FormData(document.getElementsByTagName('form')[0] ?? undefined);
-    return input.reduce((acc:any, cur:any)=> {
+    const output: any = {
+      x: ['x']
+    };
+    const dailyTotal: any = {};
+    eventTypes.forEach((eventType: any) => {
+      output[eventType.fieldName] = [eventType.name];
+    })
+    const totalAudiencesActives = input.reduce((acc:any, cur:any)=> {
       //We check that the day is active
       if (formData.get(`check-${cur.date}`) === 'on') {
-
+        output.x.push(cur.date);
+        //Set the dailyTotal equal to 0
+        eventTypes.forEach((eventType: any) => {
+          dailyTotal[eventType.fieldName] = 0;
+        })
         Object.keys(cur.audiences).forEach((audience: string) => {
           //We check that the status is checked
           if (formData?.get(`check-status-${audience}`) === 'on') {
             //We check for every type if is checked
             eventTypes.forEach((eventType: {name: string; fieldName: string}) => {
               if(formData?.get(`check-${eventType.fieldName}-${audience}`) === 'on') {
-                acc[eventType.fieldName] += cur.audiences?.[audience]?.[eventType.fieldName];
+                dailyTotal[eventType.fieldName] += cur.audiences?.[audience]?.[eventType.fieldName];
               }
             })
           }
         })
+        eventTypes.forEach((eventType: any) => {
+          acc[eventType.fieldName] += dailyTotal[eventType.fieldName];
+          output[eventType.fieldName].push(dailyTotal[eventType.fieldName]);
+        })
       } 
       return acc;
-    }, {view_content: 0, page_scroll: 0, conversion: 0})
+    }, {view_content: 0, page_scroll: 0, conversion: 0});
+    const columns = [output.x];
+    const columnsTotal: any = [];
+    eventTypes.forEach((eventType: any) => {
+      columns.push(output[eventType.fieldName]);
+      columnsTotal.push([eventType.name, totalAudiencesActives[eventType.fieldName]]);
+    })
+    c3.generate({
+      bindto: '#chart',
+      size: {
+        width: 800
+      },
+      padding: {
+        top: 40,
+        right: 40
+      },
+      data: {
+          x: 'x',
+          columns,
+      },
+      axis: {
+          x: {
+              type: 'timeseries',
+              tick: {
+                  format: '%d-%m-%Y'
+              }
+          }
+      }
+    });
+    c3.generate({
+    bindto: '#totalChart',
+    size: {
+      width: 400
+    },
+    data: {
+      columns: columnsTotal,
+      type: 'bar',
+    },
+    bar: {
+      width: {
+        ratio: 0.5 
+      }
+    }
+    });
   }
 
   const getInputsChecked = (dataApi: any): void => {
@@ -81,8 +174,6 @@ const Dashboard = ():JSX.Element => {
       })
     })
   }
-
-  console.log('data', dataApi);
 
   return (
     <>
@@ -138,6 +229,10 @@ const Dashboard = ():JSX.Element => {
           </tbody>
       </table>
     </form>
+    <div className='chartContainer'>
+      <div id='chart'></div>
+      <div id='totalChart'></div>
+    </div>
     </>
     )
 }
