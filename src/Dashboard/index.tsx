@@ -21,8 +21,8 @@ const Dashboard = ():JSX.Element => {
   useEffect(() => {
     if(dataApi[0].length > 0 && dataApi[1].length > 0) {
       getInputsChecked(dataApi[0]);
+      reconcilateChecks(dataApi[0]);
       printCharts(dataApi[1]);
-      // const formData = new FormData(document.getElementsByTagName('form')[0] ?? undefined);
       dataApi[0].forEach((element: any) => {
         eventTypes.forEach((eventType: any) => {
           if(document.getElementById(`check-${eventType.fieldName}-${element.id}`)) {
@@ -52,6 +52,7 @@ const Dashboard = ():JSX.Element => {
   }, [dataApi]);
   
   const handleClick =(event: Event): void => {
+    reconcilateChecks(dataApi[0]);
     printCharts(dataApi[1]);
     event.stopPropagation();
   }
@@ -83,6 +84,21 @@ const Dashboard = ():JSX.Element => {
       )
     })
   }
+
+  const reconcilateChecks = (input: any): void => {
+    const formData = new FormData(document.getElementsByTagName('form')[0] ?? undefined);
+    input.forEach((element: any) => {
+      if (formData.get(`check-status-${element.id}`) === null) {
+        eventTypes.forEach((eventType: any) => {
+          if (formData.get(`check-${eventType.fieldName}-${element.id}`) === 'on') {
+            document.getElementById(`check-${eventType.fieldName}-${element.id}`)?.removeEventListener('click', handleClick);
+            document.getElementById(`check-${eventType.fieldName}-${element.id}`)?.click();
+            document.getElementById(`check-${eventType.fieldName}-${element.id}`)?.addEventListener('click', handleClick);
+          }
+        })
+      }
+    })
+  } 
 
   const printCharts = (input: any): void => {
     const formData = new FormData(document.getElementsByTagName('form')[0] ?? undefined);
